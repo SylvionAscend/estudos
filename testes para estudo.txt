@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Questões de Matemática</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Style for LaTeX images to align with text */
+        .latex-img {
+            vertical-align: middle;
+            margin-bottom: 2px;
+        }
+        /* Custom transition for the feedback section */
+        #feedback-section {
+            transition: all 0.3s ease-in-out;
+            transform-origin: top;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex flex-col items-center justify-center min-h-screen p-4 sm:p-6">
+
+    <div class="w-full max-w-2xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-cyan-400">Gerador de Questões de Matemática</h1>
+            <p class="text-gray-400 mt-2">Teste seus conhecimentos para a prova N2!</p>
+        </header>
+
+        <!-- Quiz Card -->
+        <main id="quiz-container" class="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-700">
+            <!-- Topic Title -->
+            <div id="topic-container" class="mb-4">
+                <span id="topic-badge" class="bg-cyan-900/50 text-cyan-300 text-sm font-medium px-3 py-1 rounded-full">Carregando...</span>
+            </div>
+
+            <!-- Question Area -->
+            <div id="question-area" class="text-lg text-gray-300 mb-6 min-h-[80px]">
+                <p id="question-text"></p>
+                <div id="equation-container" class="mt-4 text-center"></div>
+            </div>
+
+            <!-- Answer Input -->
+            <div class="flex flex-col sm:flex-row gap-4">
+                <input type="text" id="answer-input" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500" placeholder="Digite sua resposta aqui...">
+                <button id="check-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300">Verificar</button>
+            </div>
+            
+            <button id="next-btn" class="hidden w-full mt-4 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300">Próxima Questão</button>
+
+            <!-- Feedback and Solution Section -->
+            <div id="feedback-section" class="mt-6 border-t border-gray-700 pt-6" style="display: none;">
+                <h3 id="feedback-text" class="text-2xl font-bold mb-4"></h3>
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-300 mb-2">Resolução:</h4>
+                    <p id="solution-text" class="bg-gray-900/50 p-4 rounded-md text-gray-400 leading-relaxed"></p>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="text-center mt-8 text-gray-500 text-sm">
+            <p>Criado para ajudar nos seus estudos. Boa sorte!</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- UTILITY FUNCTIONS ---
+        /**
+         * Generates a random integer between min (inclusive) and max (inclusive).
+         */
+        const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+        
+        /**
+         * Formats a number to have up to 2 decimal places if it's not an integer.
+         */
+        const formatNumber = (num) => (num % 1 !== 0 ? parseFloat(num.toFixed(2)) : num).toString().replace('.', ',');
+
+
+        // --- DYNAMIC QUESTION GENERATORS ---
+        const questionGenerators = {
+            'Circunferência': () => {
+                const choice = getRandomInt(1, 3);
+                let questionData = {};
+                if (choice === 1) {
+                    const r = getRandomInt(2, 20);
+                    const C = 2 * 3.14 * r;
+                    questionData = {
+                        question: `Qual é o comprimento de uma circunferência com raio de ${r} cm? (Use π = 3,14)`,
+                        equation: "C = 2 \\cdot \\pi \\cdot r",
+                        answer: [formatNumber(C), `${formatNumber(C)} cm`],
+                        solution: `A fórmula do comprimento é $C = 2\\pi r$.<br>Substituindo os valores: $C = 2 \\cdot 3,14 \\cdot ${r} = ${formatNumber(C)}$ cm.`
+                    };
+                } else if (choice === 2) {
+                    const r = getRandomInt(2, 15);
+                    const d = r * 2;
+                    const A = 3.14 * r * r;
+                    questionData = {
+                        question: `Calcule a área de um círculo cujo diâmetro é de ${d} m. (Use π = 3,14)`,
+                        equation: "A = \\pi \\cdot r^2",
+                        answer: [formatNumber(A), `${formatNumber(A)} m^2`, `${formatNumber(A)} m2`],
+                        solution: `Se o diâmetro é ${d} m, o raio (r) é metade disso, ou seja, ${r} m.<br>A fórmula da área é $A = \\pi r^2$.<br> $A = 3,14 \\cdot ${r}^2 = 3,14 \\cdot ${r*r} = ${formatNumber(A)}$ m².`
+                    };
+                } else {
+                    const a = getRandomInt(1, 10);
+                    const b = getRandomInt(-10, -1);
+                    const r = getRandomInt(2, 8);
+                    const r2 = r * r;
+                    questionData = {
+                        question: `Identifique o centro e o raio da circunferência descrita pela equação $(x - ${a})^2 + (y + ${-b})^2 = ${r2}$.`,
+                        equation: "(x - a)^2 + (y - b)^2 = r^2",
+                        answer: [`C(${a}, ${b}) r=${r}`, `Centro(${a},${b}) e raio ${r}`],
+                        solution: `Comparando com a equação reduzida $(x-a)^2 + (y-b)^2 = r^2$, temos:<br>- $a = ${a}$<br>- $b = ${b}$<br>- $r^2 = ${r2} \\implies r = \\sqrt{${r2}} = ${r}$<br>Portanto, o Centro é C(${a}, ${b}) e o raio é ${r}.`
+                    };
+                }
+                return questionData;
+            },
+            'Triângulos': () => {
+                const choice = getRandomInt(1, 3);
+                let questionData = {};
+                const pythagoreanTriples = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17]];
+
+                if (choice === 1) {
+                    const triple = pythagoreanTriples[getRandomInt(0, pythagoreanTriples.length - 1)];
+                    const b = triple[0];
+                    const c = triple[1];
+                    const a = triple[2];
+                    questionData = {
+                        question: `Em um triângulo retângulo, os catetos medem ${b} cm e ${c} cm. Qual é o comprimento da hipotenusa?`,
+                        equation: "a^2 = b^2 + c^2",
+                        answer: [a.toString(), `${a} cm`],
+                        solution: `Pelo Teorema de Pitágoras, $a^2 = b^2 + c^2$, onde 'a' é a hipotenusa.<br>$a^2 = ${b}^2 + ${c}^2 \\implies a^2 = ${b*b} + ${c*c} \\implies a^2 = ${a*a} \\implies a = ${a}$ cm.`
+                    };
+                } else if (choice === 2) {
+                    const base = getRandomInt(5, 20);
+                    const altura = getRandomInt(4, 15);
+                    const area = (base * altura) / 2;
+                    questionData = {
+                        question: `A base de um triângulo mede ${base} cm e sua altura mede ${altura} cm. Qual é a sua área?`,
+                        equation: "A = \\frac{base \\cdot altura}{2}",
+                        answer: [formatNumber(area), `${formatNumber(area)} cm^2`, `${formatNumber(area)} cm2`],
+                        solution: `A fórmula da área do triângulo é $A = \\frac{b \\cdot h}{2}$.<br>$A = \\frac{${base} \\cdot ${altura}}{2} = \\frac{${base * altura}}{2} = ${formatNumber(area)}$ cm².`
+                    };
+                } else {
+                    const catetoOposto = getRandomInt(5, 15);
+                    const hipotenusa = catetoOposto * 2;
+                    questionData = {
+                        question: `Em um triângulo retângulo com um ângulo de 30°, o cateto oposto a ele mede ${catetoOposto} cm. Qual é a medida da hipotenusa?`,
+                        answer: [hipotenusa.toString(), `${hipotenusa} cm`],
+                        solution: `Em um triângulo retângulo, o cateto oposto ao ângulo de 30° é sempre metade da hipotenusa.<br>Portanto, a hipotenusa é o dobro do cateto oposto: ${catetoOposto} \\cdot 2 = ${hipotenusa}$ cm.`
+                    };
+                }
+                return questionData;
+            },
+            'Proporcionalidade': () => {
+                const choice = getRandomInt(1, 2);
+                let questionData = {};
+                if (choice === 1) {
+                    const q1 = getRandomInt(2, 8);
+                    const p1 = q1 * getRandomInt(3, 10);
+                    const q2 = getRandomInt(q1 + 1, 15);
+                    const p2 = (p1 * q2) / q1;
+                    questionData = {
+                        question: `Se ${q1} cadernos custam R$ ${formatNumber(p1)}, quanto custarão ${q2} cadernos?`,
+                        answer: [`R$ ${formatNumber(p2)}`, formatNumber(p2)],
+                        solution: `As grandezas são diretamente proporcionais. Regra de três:<br>$\\frac{${q1}}{${formatNumber(p1)}} = \\frac{${q2}}{x} \\implies ${q1}x = ${formatNumber(p1)} \\cdot ${q2} \\implies ${q1}x = ${formatNumber(p1*q2)} \\implies x = ${formatNumber(p2)}$.<br>Custarão R$ ${formatNumber(p2)}.`
+                    };
+                } else {
+                    const v1 = getRandomInt(40, 70);
+                    const t1 = getRandomInt(2, 5);
+                    const v2 = v1 + getRandomInt(10, 30);
+                    const t2 = (v1 * t1) / v2;
+                    questionData = {
+                        question: `Um carro a ${v1} km/h leva ${t1} horas para fazer um percurso. Se a velocidade fosse ${v2} km/h, quanto tempo levaria?`,
+                        answer: [`${formatNumber(t2)} horas`, formatNumber(t2)],
+                        solution: `Velocidade e tempo são inversamente proporcionais.<br>${v1} \\cdot ${t1} = ${v2} \\cdot t \\implies ${v1*t1} = ${v2}t \\implies t = \\frac{${v1*t1}}{${v2}} = ${formatNumber(t2)}$ horas.`
+                    };
+                }
+                return questionData;
+            },
+            'Área e Volume': () => {
+                const choice = getRandomInt(1, 3);
+                let questionData = {};
+                if (choice === 1) {
+                    const a = getRandomInt(2, 10);
+                    const V = a * a * a;
+                    questionData = {
+                        question: `Qual é o volume de um cubo cuja aresta mede ${a} cm?`,
+                        equation: "V = a^3",
+                        answer: [V.toString(), `${V} cm^3`, `${V} cm3`],
+                        solution: `O volume do cubo é dado pela aresta elevada ao cubo: $V = a^3$.<br>$V = ${a}^3 = ${V}$ cm³.`
+                    };
+                } else if (choice === 2) {
+                    const r = getRandomInt(2, 8);
+                    const h = getRandomInt(5, 15);
+                    const V = 3.14 * r * r * h;
+                    questionData = {
+                        question: `Calcule o volume de um cilindro com raio da base de ${r} cm e altura de ${h} cm. (Use π = 3,14)`,
+                        equation: "V = \\pi \\cdot r^2 \\cdot h",
+                        answer: [formatNumber(V), `${formatNumber(V)} cm^3`],
+                        solution: `A fórmula do volume do cilindro é $V = \\pi r^2 h$.<br>$V = 3,14 \\cdot ${r}^2 \\cdot ${h} = 3,14 \\cdot ${r*r} \\cdot ${h} = ${formatNumber(V)}$ cm³.`
+                    };
+                } else {
+                     const c = getRandomInt(2, 8) * 10;
+                     const l = getRandomInt(2, 5) * 10;
+                     const h = getRandomInt(2, 6) * 10;
+                     const V = c * l * h;
+                     const V_litros = V / 1000;
+                     questionData = {
+                        question: `Um aquário tem ${c} cm de comprimento, ${l} cm de largura e ${h} cm de altura. Qual seu volume em litros? (1000 cm³ = 1 L)`,
+                        equation: "V = c \\cdot l \\cdot h",
+                        answer: [V_litros.toString(), `${V_litros}L`, `${V_litros} litros`],
+                        solution: `O volume do paralelepípedo é $V = comprimento \\cdot largura \\cdot altura$.<br>$V = ${c} \\cdot ${l} \\cdot ${h} = ${V}$ cm³.<br>Para converter para litros, dividimos por 1000: $\\frac{${V}}{1000} = ${V_litros}$ litros.`
+                    };
+                }
+                return questionData;
+            },
+            'Números Complexos': () => {
+                const choice = getRandomInt(1, 3);
+                let questionData = {};
+                const pythagoreanTriples = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17]];
+
+                if (choice === 1) {
+                    const a = getRandomInt(-10, 10);
+                    const b = getRandomInt(-10, 10);
+                    const c = getRandomInt(-10, 10);
+                    const d = getRandomInt(-10, 10);
+                    const realPart = a + c;
+                    const imagPart = b + d;
+                    questionData = {
+                        question: `Calcule a soma: $(${a} ${b >= 0 ? '+' : ''} ${b}i) + (${c} ${d >= 0 ? '+' : ''} ${d}i)$`,
+                        answer: [`${realPart} + ${imagPart}i`, `${realPart}+${imagPart}i`],
+                        solution: `Somamos as partes reais com as reais e as imaginárias com as imaginárias.<br>$(${a} + ${c}) + (${b} + ${d})i = ${realPart} + ${imagPart}i$.`
+                    };
+                } else if (choice === 2) {
+                     const a = getRandomInt(1, 5);
+                     const b = getRandomInt(1, 5);
+                     const c = getRandomInt(1, 5);
+                     const d = -getRandomInt(1, 5);
+                     const realPart = a*c - b*d;
+                     const imagPart = a*d + b*c;
+                     questionData = {
+                        question: `Calcule o produto: $(${a} + ${b}i) \\cdot (${c} ${d}i)$`,
+                        answer: [`${realPart} + ${imagPart}i`, `${realPart}+${imagPart}i`],
+                        solution: `Usamos a distributiva:<br>$${a}(${c}) + ${a}(${d}i) + ${b}i(${c}) + ${b}i(${d}i)$<br>$= ${a*c} ${a*d}i + ${b*c}i + ${b*d}i^2$<br>Lembrando que $i^2 = -1$:<br>$= ${a*c} + (${a*d + b*c})i - ${b*d} = ${realPart} + ${imagPart}i$.`
+                    };
+                } else {
+                    const triple = pythagoreanTriples[getRandomInt(0, pythagoreanTriples.length - 1)];
+                    const a = triple[0];
+                    const b = triple[1];
+                    const mod = triple[2];
+                    questionData = {
+                        question: `Calcule o módulo do número complexo $z = ${a} + ${b}i$.`,
+                        equation: "|z| = \\sqrt{a^2 + b^2}",
+                        answer: [mod.toString()],
+                        solution: `O módulo é calculado por $|z| = \\sqrt{a^2 + b^2}$.<br>$|z| = \\sqrt{${a}^2 + ${b}^2} = \\sqrt{${a*a} + ${b*b}} = \\sqrt{${mod*mod}} = ${mod}$.`
+                    };
+                }
+                return questionData;
+            }
+        };
+
+
+        // --- DOM ELEMENTS ---
+        const topicBadge = document.getElementById('topic-badge');
+        const questionText = document.getElementById('question-text');
+        const equationContainer = document.getElementById('equation-container');
+        const answerInput = document.getElementById('answer-input');
+        const checkBtn = document.getElementById('check-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const feedbackSection = document.getElementById('feedback-section');
+        const feedbackText = document.getElementById('feedback-text');
+        const solutionText = document.getElementById('solution-text');
+
+        // --- STATE MANAGEMENT ---
+        let currentQuestion = {};
+        let lastTopic = '';
+
+        // --- FUNCTIONS ---
+
+        /**
+         * Converts LaTeX formulas (like $...$) in a string to <img> tags using an online renderer.
+         */
+        function renderLatex(text) {
+            if (!text) return '';
+            return text.replace(/\$(.*?)\$/g, (match, latexCode) => {
+                const encodedLatex = encodeURIComponent(latexCode.trim());
+                return `<img src="https://latex.codecogs.com/svg.latex?{\\color{white}${encodedLatex}}" class="latex-img" alt="${latexCode}"/>`;
+            });
+        }
+
+        /**
+         * Selects a new random question.
+         */
+        function loadNewQuestion() {
+            let randomTopic;
+            const topics = Object.keys(questionGenerators);
+            
+            do {
+                randomTopic = topics[Math.floor(Math.random() * topics.length)];
+            } while (topics.length > 1 && randomTopic === lastTopic);
+
+            lastTopic = randomTopic;
+            // Generate a new question object from the factory
+            currentQuestion = questionGenerators[randomTopic]();
+            
+            displayQuestion();
+        }
+
+        /**
+         * Updates the UI with the current question's data.
+         */
+        function displayQuestion() {
+            topicBadge.textContent = lastTopic;
+            questionText.innerHTML = renderLatex(currentQuestion.question);
+            
+            equationContainer.innerHTML = '';
+            if (currentQuestion.equation) {
+                const encodedLatex = encodeURIComponent(`{\\color{white}${currentQuestion.equation}}`);
+                equationContainer.innerHTML = `<img src="https://latex.codecogs.com/svg.latex?${encodedLatex}" alt="Equation" />`;
+            }
+            
+            resetUI();
+        }
+
+        /**
+         * Resets the UI state for a new question.
+         */
+        function resetUI() {
+            answerInput.value = '';
+            answerInput.disabled = false;
+            answerInput.focus();
+            
+            feedbackSection.style.display = 'none';
+            
+            checkBtn.classList.remove('hidden');
+            nextBtn.classList.add('hidden');
+        }
+
+        /**
+         * Normalizes an answer string for comparison.
+         */
+        function normalizeAnswer(answer) {
+             // More robust normalization for complex numbers and coordinates
+            return answer.toString().trim().toLowerCase()
+                .replace(',', '.')
+                .replace(/\s*\+\s*/g, '+') // a + bi -> a+bi
+                .replace(/\s*-\s*/g, '-') // a - bi -> a-bi
+                .replace(/\(\s*/g, '(')   // ( 5 -> (5
+                .replace(/\s*\)/g, ')')   // 5 ) -> 5)
+                .replace(/\s+/g, ' ');
+        }
+
+        /**
+         * Checks the user's answer against the correct one(s).
+         */
+        function checkAnswer() {
+            if (answerInput.value.trim() === '') return; // Don't check empty answers
+            
+            const userAnswer = normalizeAnswer(answerInput.value);
+            const correctAnswers = currentQuestion.answer.map(normalizeAnswer);
+
+            if (correctAnswers.includes(userAnswer)) {
+                feedbackText.textContent = 'Correto! 🎉';
+                feedbackText.className = 'text-2xl font-bold mb-4 text-green-400';
+            } else {
+                feedbackText.textContent = 'Incorreto. Veja a resolução!';
+                feedbackText.className = 'text-2xl font-bold mb-4 text-red-400';
+            }
+
+            solutionText.innerHTML = renderLatex(currentQuestion.solution);
+
+            feedbackSection.style.display = 'block';
+            answerInput.disabled = true;
+            checkBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+        }
+        
+        // --- EVENT LISTENERS ---
+        document.addEventListener('DOMContentLoaded', loadNewQuestion);
+
+        checkBtn.addEventListener('click', checkAnswer);
+        nextBtn.addEventListener('click', loadNewQuestion);
+
+        answerInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !checkBtn.classList.contains('hidden')) {
+                checkAnswer();
+            } else if (event.key === 'Enter' && !nextBtn.classList.contains('hidden')) {
+                loadNewQuestion();
+            }
+        });
+
+    </script>
+</body>
+</html>
+
